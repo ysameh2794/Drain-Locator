@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.json">
 <title>حاسبة البعد الكيلومترى للمصارف</title>
@@ -13,7 +13,7 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,Arial,sans-serif;}
-body{background:#0f172a;color:#fff;overflow:hidden;}
+body{background:#0f172a;color:#fff;overflow:hidden;width:100vw;height:100vh;}
 header{height:50px;background:#111827;display:flex;align-items:center;justify-content:center;
   font-size:17px;font-weight:bold;border-bottom:2px solid #1f2937;transition: all 0.2s ease;}
 
@@ -36,7 +36,7 @@ header{height:50px;background:#111827;display:flex;align-items:center;justify-co
   #container{flex-direction:row;height:calc(100vh - 50px) !important;}
   #map-wrapper{height:100% !important;flex:1;order:2;}
   #sidebar{width:380px;order:1;height:100%;display:block !important;}
-  #resizeMapBtn{display:none !important;} /* إخفاء الزرار فى الشاشات الكبيرة لعدم الحاجة له */
+  #resizeMapBtn{display:none !important;} /* إخفاء الزرار فى الشاشات الكبيرة */
 }
 
 .section{margin-bottom:14px;background:#172033;border:1px solid #283449;border-radius:10px;padding:10px;}
@@ -57,13 +57,26 @@ td{padding:6px 4px;border-bottom:1px solid #2b3852;font-size:13px;}
 .legend span{display:inline-flex;align-items:center;gap:4px;}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
 
-/* زر تغيير حجم الخريطة العائم - تم تعديل طبقاته وتثبيته تماماً ليظل ظاهراً */
+/* تعديل التموضع ليكون ثابتاً وفوق الجزء المرئي فعلياً من شاشتك (Viewport) */
 #resizeMapBtn {
-  position: absolute; bottom: 20px; left: 20px; z-index: 9999;
-  background: #1e293b; color: #fff; border: 2px solid #38bdf8;
-  border-radius: 50%; width: 48px; height: 48px; font-size: 22px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: bold;
+  position: fixed; 
+  bottom: calc(20px + env(safe-area-inset-bottom)); 
+  left: 20px; 
+  z-index: 99999; /* رفع درجة الطبقة لضمان ظهورها فوق كل شيء */
+  background: #1e293b; 
+  color: #fff; 
+  border: 2px solid #38bdf8;
+  border-radius: 50%; 
+  width: 50px; 
+  height: 50px; 
+  font-size: 24px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  cursor: pointer; 
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6); 
+  font-weight: bold;
+  -webkit-tap-highlight-color: transparent;
 }
 </style>
 </head>
@@ -71,10 +84,11 @@ td{padding:6px 4px;border-bottom:1px solid #2b3852;font-size:13px;}
 
 <header id="app-header">حاسبة البعد الكيلومترى للمصارف</header>
 
+<button id="resizeMapBtn" title="تغيير حجم الخريطة">&#8597;</button>
+
 <div id="container">
   <div id="map-wrapper">
     <div id="map"></div>
-    <button id="resizeMapBtn" title="تغيير حجم الخريطة">&#8597;</button>
   </div>
   
   <div id="sidebar">
@@ -284,7 +298,7 @@ pickBtn.onAdd = function () {
 pickBtn.addTo(map);
 
 //////////////////////////////////////////////////////
-// منطق تغيير مستويات حجم الخريطة الثلاثة (صغير، متوسط، ملء الشاشة) بالترتيب
+// منطق تغيير مستويات حجم الخريطة الثلاثة
 //////////////////////////////////////////////////////
 let sizeState = 0; 
 document.getElementById("resizeMapBtn").addEventListener("click", function() {
