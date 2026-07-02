@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.json">
-
 <title>حاسبة البعد الكيلومترى للمصارف</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -13,66 +12,54 @@
 <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
 
 <style>
-html, body {
-  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-  overscroll-behavior-y: contain; overscroll-behavior-x: contain;
-  background: #0f172a; color: #fff; font-family: Tahoma, Arial, sans-serif;
-  -webkit-overflow-scrolling: touch;
-}
-header { height: 50px; background:#111827; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:bold; border-bottom:2px solid #1f2937; transition: all 0.2s ease; }
-#container { display: flex; flex-direction: column; height: calc(100vh - 50px); overflow: hidden; transition: all 0.3s ease; }
+*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,Arial,sans-serif;}
+body{background:#0f172a;color:#fff;overflow:hidden;}
+header{height:50px;background:#111827;display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:bold;border-bottom:2px solid #1f2937;transition: all 0.2s ease;}
 
-#map-wrapper {
-  position: relative;
-  height: 45vh; 
-  width: 100%;
-  transition: height 0.3s ease;
-}
-#map { height: 100%; width: 100%; }
+/* الموبايل: الخريطة فوق والبيانات تحت */
+#container{display:flex;flex-direction:column;height:calc(100vh - 50px);position:relative;transition: all 0.3s ease;}
 
-#sidebar {
-  flex: 1; background: #1e293b; padding: 12px; overflow-y: auto; 
-  overscroll-behavior-y: contain; transition: all 0.3s ease;
-}
+#map-wrapper{position:relative;height:55vh;width:100%;transition: height 0.3s ease;}
+#map{height:100%;width:100%;}
+#sidebar{flex:1;background:#1e293b;padding:12px;overflow:auto;}
 
+/* حالات التحكم فى حجم الخريطة عبر الكلاسات */
 .map-small #map-wrapper { height: 25vh !important; }
 .map-fullscreen #map-wrapper { height: 100vh !important; }
 .map-fullscreen #sidebar { display: none !important; }
 .map-fullscreen header { display: none !important; }
 .map-fullscreen #container { height: 100vh !important; }
 
+/* الديسكتوب: جنب بعض */
 @media (min-width: 768px) {
-  #container { flex-direction: row; height: calc(100vh - 50px) !important; }
-  #map-wrapper { height: 100% !important; flex: 1; order: 2; }
-  #sidebar { width: 380px; order: 1; height: 100% !important; display: block !important; }
-  #resizeMapBtn { display: none !important; } 
+  #container{flex-direction:row;height:calc(100vh - 50px) !important;}
+  #map-wrapper{height:100% !important;flex:1;order:2;}
+  #sidebar{width:380px;order:1;height:100%;display:block !important;}
+  #resizeMapBtn{display:none !important;} /* إخفاء الزرار فى الشاشات الكبيرة لعدم الحاجة له */
 }
 
-.section { margin-bottom: 14px; background: #172033; border: 1px solid #283449; border-radius: 10px; padding: 10px; }
-.section h3 { margin-bottom: 8px; font-size: 14px; color: #38bdf8; }
-input[type=file] { width: 100%; padding: 6px; background: #fff; border-radius: 6px; color: #111; font-size: 13px; }
-input[type=text] { width: 100%; padding: 8px; margin-top: 6px; border: 1px solid #334155; border-radius: 6px; font-size: 14px; background: #0b1220; color: #fff; }
-input[type=text]::placeholder { color: #64748b; }
-button { width: 100%; margin-top: 10px; padding: 10px; border: none; background: #2563eb; color: #fff; font-size: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-button:hover { background: #1d4ed8; }
-button:disabled { background: #334155; cursor: not-allowed; }
-table { width: 100%; border-collapse: collapse; }
-td { padding: 6px 4px; border-bottom: 1px solid #2b3852; font-size: 13px; }
-.value { color: #22c55e; font-weight: bold; text-align: left; }
-#status { font-size: 12px; color: #94a3b8; margin-top: 6px; min-height: 16px; }
-.legend { display: flex; gap: 10px; margin-top: 8px; font-size: 11px; color: #cbd5e1; flex-wrap: wrap; }
-.legend span { display: inline-flex; align-items: center; gap: 4px; }
-.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.section{margin-bottom:14px;background:#172033;border:1px solid #283449;border-radius:10px;padding:10px;}
+.section h3{margin-bottom:8px;font-size:14px;color:#38bdf8;}
+input[type=file]{width:100%;padding:6px;background:#fff;border-radius:6px;color:#111;font-size:13px;}
+input[type=text]{width:100%;padding:8px;margin-top:6px;border:1px solid #334155;border-radius:6px;
+  font-size:14px;background:#0b1220;color:#fff;}
+input[type=text]::placeholder{color:#64748b;}
+button{width:100%;margin-top:10px;padding:10px;border:none;background:#2563eb;color:#fff;
+  font-size:15px;border-radius:8px;cursor:pointer;font-weight:bold;}
+button:hover{background:#1d4ed8;}
+button:disabled{background:#334155;cursor:not-allowed;}
+table{width:100%;border-collapse:collapse;}
+td{padding:6px 4px;border-bottom:1px solid #2b3852;font-size:13px;}
+.value{color:#22c55e;font-weight:bold;text-align:left;}
+#status{font-size:12px;color:#94a3b8;margin-top:6px;min-height:16px;}
+.legend{display:flex;gap:10px;margin-top:8px;font-size:11px;color:#cbd5e1;flex-wrap:wrap;}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
 
-#active-file-box {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #1e293b; padding: 6px 10px; border-radius: 6px; border: 1px dashed #38bdf8;
-}
-#file-name-txt { font-size: 12px; color: #cbd5e1; word-break: break-all; padding-left: 8px; }
-#btn-delete-file { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; width: auto; margin: 0; padding: 0 4px; font-weight: bold; }
-
+/* زر تغيير حجم الخريطة العائم - تم تعديل طبقاته وتثبيته تماماً ليظل ظاهراً */
 #resizeMapBtn {
-  position: absolute; bottom: 15px; left: 15px; z-index: 1000;
+  position: absolute; bottom: 20px; left: 20px; z-index: 9999;
   background: #1e293b; color: #fff; border: 2px solid #38bdf8;
   border-radius: 50%; width: 48px; height: 48px; font-size: 22px;
   display: flex; align-items: center; justify-content: center;
@@ -91,25 +78,20 @@ td { padding: 6px 4px; border-bottom: 1px solid #2b3852; font-size: 13px; }
   </div>
   
   <div id="sidebar">
+
     <div class="section">
-      <h3>ملف المصارف (KML)</h3>
-      <div id="upload-zone">
-        <input type="file" id="kmlFile" accept=".kml">
-      </div>
-      <div id="active-file-box" style="display: none;">
-        <span id="file-name-txt">ملف المصارف</span>
-        <button id="btn-delete-file" title="حذف الملف لرفع غيره">[ X ]</button>
-      </div>
+      <h3>رفع ملف KML</h3>
+      <input type="file" id="kmlFile" accept=".kml">
       <div id="status">لم يتم رفع أى ملف بعد</div>
     </div>
-    
+
     <div class="section">
       <h3>الإحداثيات (يمكن الضغط على الخريطة)</h3>
       <input type="text" id="coordX" placeholder="X (خط الطول، مثال: 31.xxxxx)">
       <input type="text" id="coordY" placeholder="Y (خط العرض، مثال: 29.xxxxx)">
       <button id="btnCalc" disabled>حساب</button>
     </div>
-    
+
     <div class="section">
       <h3>النتيجة</h3>
       <table>
@@ -127,88 +109,183 @@ td { padding: 6px 4px; border-bottom: 1px solid #2b3852; font-size: 13px; }
         <span><i class="dot" style="background:#ef4444"></i> من الإسقاط للمصب</span>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
 const map = L.map("map").setView([29.3, 31.0], 8);
 
-const streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 22, attribution: "OSM" });
-const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 22, maxNativeZoom: 18, attribution: "Esri" });
+const streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 22, attribution: "OSM"
+});
+const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 22, maxNativeZoom: 18, attribution: "Esri World Imagery"
+});
 streetLayer.addTo(map);
 let isSatellite = false;
 
 const toggleBtn = L.control({ position: "topright" });
 toggleBtn.onAdd = function () {
-  const btn = L.DomUtil.create("button", ""); btn.innerHTML = "عرض: صور جوية";
+  const btn = L.DomUtil.create("button", "");
+  btn.innerHTML = "عرض: صور جوية";
   btn.style.cssText = "padding:8px 14px;background:#1e293b;color:#fff;border:1px solid #38bdf8;border-radius:8px;cursor:pointer;font-size:14px;font-family:Tahoma;";
   btn.onclick = function () {
-    if (isSatellite) { map.removeLayer(satelliteLayer); streetLayer.addTo(map); btn.innerHTML = "عرض: صور جوية"; }
-    else { map.removeLayer(streetLayer); satelliteLayer.addTo(map); btn.innerHTML = "عرض: خريطة عادية"; }
+    if (isSatellite) {
+      map.removeLayer(satelliteLayer); streetLayer.addTo(map);
+      btn.innerHTML = "عرض: صور جوية";
+    } else {
+      map.removeLayer(streetLayer); satelliteLayer.addTo(map);
+      btn.innerHTML = "عرض: خريطة عادية";
+    }
     isSatellite = !isSatellite;
   };
-  L.DomEvent.disableClickPropagation(btn); return btn;
+  L.DomEvent.disableClickPropagation(btn);
+  return btn;
 };
 toggleBtn.addTo(map);
 
-let measureMode = false; let measurePoints = []; let measureLayers = []; let measureMarkers = []; let measureTooltip = null;
+//////////////////////////////////////////////////////
+// أداة القياس
+//////////////////////////////////////////////////////
+
+let measureMode = false;
+let measurePoints = [];
+let measureLayers = [];
+let measureMarkers = [];
+let measureTooltip = null;
+
 const measureBtn = L.control({ position: "topright" });
 measureBtn.onAdd = function () {
-  const btn = L.DomUtil.create("button", ""); btn.id = "measureBtn"; btn.innerHTML = "قياس مسافة";
+  const btn = L.DomUtil.create("button", "");
+  btn.id = "measureBtn";
+  btn.innerHTML = "قياس مسافة";
   btn.style.cssText = "padding:8px 14px;background:#1e293b;color:#fff;border:1px solid #f59e0b;border-radius:8px;cursor:pointer;font-size:14px;font-family:Tahoma;margin-top:6px;display:block;";
   btn.onclick = function () {
-    if (measureMode) { stopMeasure(); btn.innerHTML = "قياس مسافة"; btn.style.borderColor = "#f59e0b"; }
-    else { startMeasure(); btn.innerHTML = "إلغاء القياس"; btn.style.borderColor = "#ef4444"; }
+    if (measureMode) {
+      stopMeasure();
+      btn.innerHTML = "قياس مسافة";
+      btn.style.borderColor = "#f59e0b";
+    } else {
+      startMeasure();
+      btn.innerHTML = "إلغاء القياس";
+      btn.style.borderColor = "#ef4444";
+    }
   };
-  L.DomEvent.disableClickPropagation(btn); return btn;
+  L.DomEvent.disableClickPropagation(btn);
+  return btn;
 };
 measureBtn.addTo(map);
 
 function startMeasure() {
-  measureMode = true; measurePoints = []; clearMeasureLayers(); map.getContainer().style.cursor = "crosshair";
-  measureTooltip = L.popup({ closeButton: false, autoClose: false, closeOnClick: false }).setLatLng(map.getCenter())
-    .setContent('<div style="font-family:Tahoma;font-size:13px;color:#111">اضغط على الخريطة لتحديد النقاط<br>انقر مرتين لإنهاء القياس</div>').openOn(map);
+  measureMode = true;
+  measurePoints = [];
+  clearMeasureLayers();
+  map.getContainer().style.cursor = "crosshair";
+  measureTooltip = L.popup({ closeButton: false, autoClose: false, closeOnClick: false })
+    .setLatLng(map.getCenter())
+    .setContent('<div style="font-family:Tahoma;font-size:13px;color:#111">اضغط على الخريطة لتحديد النقاط<br>انقر مرتين لإنهاء القياس</div>')
+    .openOn(map);
 }
-function stopMeasure() { measureMode = false; map.getContainer().style.cursor = ""; if (measureTooltip) { map.closePopup(measureTooltip); measureTooltip = null; } }
-function clearMeasureLayers() { measureLayers.forEach(l => map.removeLayer(l)); measureMarkers.forEach(m => map.removeLayer(m)); measureLayers = []; measureMarkers = []; }
 
-let watchId = null;
+function stopMeasure() {
+  measureMode = false;
+  map.getContainer().style.cursor = "";
+  if (measureTooltip) { map.closePopup(measureTooltip); measureTooltip = null; }
+}
+
+function clearMeasureLayers() {
+  measureLayers.forEach(function (l) { map.removeLayer(l); });
+  measureMarkers.forEach(function (m) { map.removeLayer(m); });
+  measureLayers = [];
+  measureMarkers = [];
+}
+
+//////////////////////////////////////////////////////
+// زرار GPS
+//////////////////////////////////////////////////////
+
 const gpsBtn = L.control({ position: "topright" });
 gpsBtn.onAdd = function () {
-  const btn = L.DomUtil.create("button", ""); btn.innerHTML = "تحديد موقعي الحالي";
+  const btn = L.DomUtil.create("button", "");
+  btn.id = "gpsBtn";
+  btn.innerHTML = "تحديد موقعي الحالي";
   btn.style.cssText = "padding:8px 14px;background:#1e293b;color:#fff;border:1px solid #22c55e;border-radius:8px;cursor:pointer;font-size:14px;font-family:Tahoma;margin-top:6px;display:block;";
   btn.onclick = function () {
-    if (!navigator.geolocation) { alert("المستشعر غير مدعوم."); return; }
+    if (!navigator.geolocation) { alert("جهازك لا يدعم GPS"); return; }
     btn.innerHTML = "انتظار الـ GPS...";
-    
-    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
-    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); }
-    
-    watchId = navigator.geolocation.watchPosition(
+    navigator.geolocation.getCurrentPosition(
       function (pos) {
-        navigator.geolocation.clearWatch(watchId); watchId = null;
-        const lat = pos.coords.latitude; const lng = pos.coords.longitude;
-        document.getElementById("coordX").value = lng.toFixed(6); 
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        document.getElementById("coordX").value = lng.toFixed(6);
         document.getElementById("coordY").value = lat.toFixed(6);
         btn.innerHTML = "تحديد موقعي الحالي";
-        
-        if (App.gpsMarker) map.removeLayer(App.gpsMarker);
-        App.gpsMarker = L.circleMarker([lat, lng], { radius: 10, color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.9 }).addTo(map);
-        map.setView([lat, lng], 15);
+
+        if (App.gpsMarker) { map.removeLayer(App.gpsMarker); App.gpsMarker = null; }
+        if (App.gpsAccuracy) { map.removeLayer(App.gpsAccuracy); App.gpsAccuracy = null; }
+
+        App.gpsMarker = L.circleMarker([lat, lng], {
+          radius: 10, color: "#22c55e", fillColor: "#22c55e",
+          fillOpacity: 0.9, weight: 3
+        }).addTo(map).bindPopup("موقعك الحالي").openPopup();
+
+        if (pos.coords.accuracy) {
+          App.gpsAccuracy = L.circle([lat, lng], {
+            radius: pos.coords.accuracy,
+            color: "#22c55e", fillColor: "#22c55e",
+            fillOpacity: 0.1, weight: 1
+          }).addTo(map);
+        }
+
+        map.setView([lat, lng], Math.max(map.getZoom(), 15));
         if (App.drains.length > 0) startCalculation();
       },
       function (err) {
-        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-        btn.innerHTML = "تحديد موقعي الحالي"; 
-        alert("برجاء تفعيل زر الموقع الـ GPS فى هاتفك وإعطاء المتصفح إذن الوصول للـ GPS.");
+        btn.innerHTML = "تحديد موقعي الحالي";
+        alert("تعذر تحديد الموقع:\n" + err.message + "\n\nتأكد من تفعيل GPS وإذن الموقع للمتصفح");
       },
-      options
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
-  L.DomEvent.disableClickPropagation(btn); return btn;
+  L.DomEvent.disableClickPropagation(btn);
+  return btn;
 };
 gpsBtn.addTo(map);
 
+//////////////////////////////////////////////////////
+// زرار تحديد نقطة
+//////////////////////////////////////////////////////
+
+let pickMode = false;
+
+const pickBtn = L.control({ position: "topright" });
+pickBtn.onAdd = function () {
+  const btn = L.DomUtil.create("button", "");
+  btn.id = "pickBtn";
+  btn.innerHTML = "تحديد نقطة بالخريطة";
+  btn.style.cssText = "padding:8px 14px;background:#1e293b;color:#fff;border:1px solid #a855f7;border-radius:8px;cursor:pointer;font-size:14px;font-family:Tahoma;margin-top:6px;display:block;";
+  btn.onclick = function () {
+    if (pickMode) {
+      pickMode = false;
+      btn.innerHTML = "تحديد نقطة بالخريطة";
+      btn.style.borderColor = "#a855f7";
+      map.getContainer().style.cursor = "";
+    } else {
+      pickMode = true;
+      btn.innerHTML = "إلغاء التحديد";
+      btn.style.borderColor = "#ef4444";
+      map.getContainer().style.cursor = "crosshair";
+    }
+  };
+  L.DomEvent.disableClickPropagation(btn);
+  return btn;
+};
+pickBtn.addTo(map);
+
+//////////////////////////////////////////////////////
+// منطق تغيير مستويات حجم الخريطة الثلاثة (صغير، متوسط، ملء الشاشة) بالترتيب
+//////////////////////////////////////////////////////
 let sizeState = 0; 
 document.getElementById("resizeMapBtn").addEventListener("click", function() {
   const body = document.body;
@@ -222,242 +299,260 @@ document.getElementById("resizeMapBtn").addEventListener("click", function() {
   setTimeout(() => { map.invalidateSize(); }, 320);
 });
 
-let pickMode = false;
-const pickBtn = L.control({ position: "topright" });
-pickBtn.onAdd = function () {
-  const btn = L.DomUtil.create("button", ""); btn.id = "pickBtn"; btn.innerHTML = "تحديد نقطة بالخريطة";
-  btn.style.cssText = "padding:8px 14px;background:#1e293b;color:#fff;border:1px solid #a855f7;border-radius:8px;cursor:pointer;font-size:14px;font-family:Tahoma;margin-top:6px;display:block;";
-  btn.onclick = function () {
-    if (pickMode) { pickMode = false; btn.innerHTML = "تحديد نقطة بالخريطة"; btn.style.borderColor = "#a855f7"; map.getContainer().style.cursor = ""; }
-    else { pickMode = true; btn.innerHTML = "إلغاء التحديد"; btn.style.borderColor = "#ef4444"; map.getContainer().style.cursor = "crosshair"; }
-  };
-  L.DomEvent.disableClickPropagation(btn); return btn;
-};
-pickBtn.addTo(map);
+//////////////////////////////////////////////////////
+// أحداث الخريطة
+//////////////////////////////////////////////////////
 
 map.on("click", function (e) {
   if (measureMode) {
     measurePoints.push(e.latlng);
-    const marker = L.circleMarker(e.latlng, { radius: 5, color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 1 }).addTo(map);
+    const marker = L.circleMarker(e.latlng, {
+      radius: 5, color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 1
+    }).addTo(map);
     measureMarkers.push(marker);
     if (measurePoints.length >= 2) {
       const line = L.polyline(measurePoints, { color: "#f59e0b", weight: 2, dashArray: "6,4" }).addTo(map);
       measureLayers.push(line);
-      let total = 0; for (let i = 0; i < measurePoints.length - 1; i++) total += measurePoints[i].distanceTo(measurePoints[i + 1]);
-      if (measureTooltip) map.closePopup(measureTooltip);
-      measureTooltip = L.popup({ closeButton: false, autoClose: false, closeOnClick: false }).setLatLng(e.latlng)
-        .setContent('<div style="font-family:Tahoma;font-size:13px;color:#111">المسافة: <b>' + total.toFixed(1) + ' متر</b></div>').openOn(map);
+      let total = 0;
+      for (let i = 0; i < measurePoints.length - 1; i++)
+        total += measurePoints[i].distanceTo(measurePoints[i + 1]);
+      if (measureTooltip) { map.closePopup(measureTooltip); }
+      measureTooltip = L.popup({ closeButton: false, autoClose: false, closeOnClick: false })
+        .setLatLng(e.latlng)
+        .setContent(
+          '<div style="font-family:Tahoma;font-size:13px;color:#111;line-height:1.8">' +
+          'المسافة: <b>' + total.toFixed(1) + ' متر</b><br>' +
+          '= ' + (total / 1000).toFixed(3) + ' كم<br>' +
+          '<span style="color:#555;font-size:11px">انقر مرتين للإنهاء</span></div>'
+        ).openOn(map);
     }
     return;
   }
+
   document.getElementById("coordX").value = e.latlng.lng.toFixed(6);
   document.getElementById("coordY").value = e.latlng.lat.toFixed(6);
+
   if (pickMode) {
-    pickMode = false; document.getElementById("pickBtn").innerHTML = "تحديد نقطة بالخريطة"; document.getElementById("pickBtn").style.borderColor = "#a855f7"; map.getContainer().style.cursor = "";
+    pickMode = false;
+    document.getElementById("pickBtn").innerHTML = "تحديد نقطة بالخريطة";
+    document.getElementById("pickBtn").style.borderColor = "#a855f7";
+    map.getContainer().style.cursor = "";
     if (App.drains.length > 0) startCalculation();
   }
 });
 
-map.on("dblclick", function (e) { if (!measureMode) return; L.DomEvent.stop(e); stopMeasure(); document.getElementById("measureBtn").innerHTML = "قياس مسافة"; document.getElementById("measureBtn").style.borderColor = "#f59e0b"; });
+map.on("dblclick", function (e) {
+  if (!measureMode) return;
+  L.DomEvent.stop(e);
+  stopMeasure();
+  document.getElementById("measureBtn").innerHTML = "قياس مسافة";
+  document.getElementById("measureBtn").style.borderColor = "#f59e0b";
+});
 
-const App = { drains: [], drainsLayer: null, selectedLayer: null, inputMarker: null, snapMarker: null, perpLine: null, beforeLayer: null, afterLayer: null, gpsMarker: null };
-const txtName = document.getElementById("drainName"); const txtNearest = document.getElementById("nearestDistance"); const txtFrom = document.getElementById("fromStart"); const txtTo = document.getElementById("toEnd"); const txtTotal = document.getElementById("totalLength"); const txtSide = document.getElementById("drainSide"); const statusEl = document.getElementById("status"); const btnCalc = document.getElementById("btnCalc");
+//////////////////////////////////////////////////////
+// حالة التطبيق
+//////////////////////////////////////////////////////
 
-const uploadZone = document.getElementById("upload-zone");
-const activeFileBox = document.getElementById("active-file-box");
-const fileNameTxt = document.getElementById("file-name-txt");
+const App = {
+  drains: [], drainsLayer: null, selectedLayer: null,
+  inputMarker: null, snapMarker: null, perpLine: null,
+  beforeLayer: null, afterLayer: null,
+  gpsMarker: null, gpsAccuracy: null
+};
 
-const dbName = "DrainCalculatorDB";
-const storeName = "DrainsStore";
+const txtName    = document.getElementById("drainName");
+const txtNearest = document.getElementById("nearestDistance");
+const txtFrom    = document.getElementById("fromStart");
+const txtTo      = document.getElementById("toEnd");
+const txtTotal   = document.getElementById("totalLength");
+const txtSide    = document.getElementById("drainSide");
+const statusEl   = document.getElementById("status");
+const btnCalc    = document.getElementById("btnCalc");
 
-function openDatabase(callback) {
-  const request = indexedDB.open(dbName, 1);
-  request.onupgradeneeded = function(e) {
-    const db = e.target.result;
-    if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
-  };
-  request.onsuccess = function(e) { callback(e.target.result); };
-  request.onerror = function() { statusEl.textContent = "خطأ فى فتح قاعدة البيانات."; };
-}
+//////////////////////////////////////////////////////
+// رفع KML
+//////////////////////////////////////////////////////
 
 document.getElementById("kmlFile").addEventListener("change", function (e) {
-  const file = e.target.files[0]; if (!file) return;
-  clearGraphics(); resetResult(); btnCalc.disabled = true; statusEl.textContent = "جارى معالجة البيانات هندسياً...";
-  
+  const file = e.target.files[0];
+  if (!file) return;
+  clearGraphics(); resetResult();
+  btnCalc.disabled = true;
+  statusEl.textContent = "جارى تحميل الملف...";
   const reader = new FileReader();
-  reader.onload = function (ev) { 
-    try { 
-      const text = ev.target.result; 
-      const parsedDrains = parseKmlToObjects(text);
-      
-      if (parsedDrains.length === 0) { statusEl.textContent = "لم يتم العثور على خطوط مصارف صالحة بالملف."; return; }
-      
-      openDatabase(function(db) {
-        const tx = db.transaction(storeName, "readwrite");
-        const store = tx.objectStore(storeName);
-        store.put(parsedDrains, "features_data");
-        store.put(file.name, "file_name_info");
-        
-        tx.oncomplete = function() {
-          App.drains = parsedDrains;
-          renderDrainsOnMap();
-          statusEl.textContent = "تم الحفظ والتحميل لـ " + App.drains.length + " مصرف بنجاح!";
-          showActiveFileView(file.name);
-        };
-      });
-    } catch (err) { statusEl.textContent = "خطأ: " + err.message; } 
+  reader.onload = function (ev) {
+    try { parseKmlText(ev.target.result); }
+    catch (err) { statusEl.textContent = "خطأ فى قراءة الملف: " + err.message; }
   };
   reader.readAsText(file, "utf-8");
 });
 
-window.addEventListener("DOMContentLoaded", function() {
-  openDatabase(function(db) {
-    const tx = db.transaction(storeName, "readonly");
-    const store = tx.objectStore(storeName);
-    const getFeatures = store.get("features_data");
-    const getName = store.get("file_name_info");
-    
-    tx.oncomplete = function() {
-      if (getFeatures.result && getFeatures.result.length > 0) {
-        App.drains = getFeatures.result;
-        renderDrainsOnMap();
-        const finalName = getName.result || "ملف KML محفوظ.kml";
-        statusEl.textContent = "تم استعادة " + App.drains.length + " مصرف تلقائياً!";
-        showActiveFileView(finalName);
-      }
-    };
-  });
-  
-  // تسجيل الـ Service Worker لجعل التطبيق يعمل بدون إنترنت (Offline)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(function() {
-      console.log('Service Worker Registered Successfully.');
-    }).catch(function(err) {
-      console.log('Service Worker Failed:', err);
-    });
-  }
-});
+function parseKmlText(content) {
+  App.drains = [];
+  if (App.drainsLayer) { map.removeLayer(App.drainsLayer); App.drainsLayer = null; }
 
-document.getElementById("btn-delete-file").addEventListener("click", function() {
-  if (confirm("هل أنت متأكد من حذف الملف الحالي؟")) {
-    openDatabase(function(db) {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      store.delete("features_data");
-      store.delete("file_name_info");
-      
-      tx.oncomplete = function() {
-        App.drains = [];
-        if (App.drainsLayer) map.removeLayer(App.drainsLayer);
-        clearGraphics(); resetResult(); btnCalc.disabled = true;
-        document.getElementById("kmlFile").value = ""; 
-        activeFileBox.style.display = "none";
-        uploadZone.style.display = "block";
-        statusEl.textContent = "تم حذف الملف.";
-      };
-    });
-  }
-});
-
-function showActiveFileView(name) {
-  uploadZone.style.display = "none";
-  fileNameTxt.textContent = "ملف نشط: " + name;
-  activeFileBox.style.display = "flex";
-}
-
-function parseKmlToObjects(content) {
-  const result = [];
   const placemarks = content.match(/<Placemark[\s\S]*?<\/Placemark>/gi) || [];
   placemarks.forEach(function (placemark) {
     if (!placemark.includes("LineString")) return;
-    const nameMatch = placemark.match(/<name>([\s\S]*?)<\/name>/i); const name = nameMatch ? nameMatch[1].trim() : "بدون اسم";
+    const nameMatch = placemark.match(/<name>([\s\S]*?)<\/name>/i);
+    const name = nameMatch ? nameMatch[1].trim() : "بدون اسم";
     const lineStrings = placemark.match(/<LineString[\s\S]*?<\/LineString>/gi) || [];
     lineStrings.forEach(function (ls) {
-      const coordsMatch = ls.match(/<coordinates>([\s\S]*?)<\/coordinates>/i); if (!coordsMatch) return;
-      const coords = coordsMatch[1].trim().split(/\s+/).map(function (c) { const parts = c.split(","); return [parseFloat(parts[0]), parseFloat(parts[1])]; }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
-      if (coords.length >= 2) { coords.reverse(); result.push({ name: name, geometry: { type: "LineString", coordinates: coords } }); }
+      const coordsMatch = ls.match(/<coordinates>([\s\S]*?)<\/coordinates>/i);
+      if (!coordsMatch) return;
+      const coords = coordsMatch[1].trim().split(/\s+/).map(function (c) {
+        const parts = c.split(",");
+        return [parseFloat(parts[0]), parseFloat(parts[1])];
+      }).filter(function (p) { return !isNaN(p[0]) && !isNaN(p[1]); });
+      if (coords.length >= 2) {
+        coords.reverse();
+        App.drains.push({ name: name, feature: turf.lineString(coords, { name: name }) });
+      }
     });
   });
-  return result;
+
+  if (App.drains.length === 0) {
+    statusEl.textContent = "لم يتم العثور على أى خطوط مصارف فى الملف"; return;
+  }
+  const fc = turf.featureCollection(App.drains.map(d => d.feature));
+  App.drainsLayer = L.geoJSON(fc, {
+    style: { color: "#00bcd4", weight: 2, opacity: 0.7 },
+    onEachFeature: function (feature, layer) { layer.bindPopup(feature.properties.name); }
+  }).addTo(map);
+  map.fitBounds(App.drainsLayer.getBounds());
+  statusEl.textContent = "تم تحميل " + App.drains.length + " خط مصرف بنجاح";
+  btnCalc.disabled = false;
 }
 
-function renderDrainsOnMap() {
-  if (App.drainsLayer) map.removeLayer(App.drainsLayer);
-  const geojsonFeatures = App.drains.map(d => turf.lineString(d.geometry.coordinates, { name: d.name }));
-  App.drainsLayer = L.geoJSON(turf.featureCollection(geojsonFeatures), { style: { color: "#00bcd4", weight: 2 }, onEachFeature: (f, l) => l.bindPopup(f.properties.name) }).addTo(map);
-  map.fitBounds(App.drainsLayer.getBounds()); btnCalc.disabled = false;
-}
+//////////////////////////////////////////////////////
+// الحساب
+//////////////////////////////////////////////////////
 
 btnCalc.addEventListener("click", startCalculation);
+document.addEventListener("keydown", function (e) { if (e.key === "Enter") startCalculation(); });
+
 function startCalculation() {
-  const x = parseFloat(document.getElementById("coordX").value); const y = parseFloat(document.getElementById("coordY").value);
-  if (isNaN(x) || isNaN(y)) { alert("أدخل إحداثيات صحيحة"); return; }
+  if (App.drains.length === 0) { alert("قم برفع ملف KML أولاً"); return; }
+  const x = parseFloat(document.getElementById("coordX").value);
+  const y = parseFloat(document.getElementById("coordY").value);
+  if (isNaN(x) || isNaN(y)) { alert("من فضلك أدخل إحداثيات صحيحة"); return; }
   clearGraphics();
-  const inputPoint = turf.point([x, y]); let bestDrain = null, bestSnap = null, bestDistance = Infinity;
-  
+  const inputPoint = turf.point([x, y]);
+  let bestDrain = null, bestSnap = null, bestDistance = Infinity;
   App.drains.forEach(function (drain) {
-    const feature = turf.lineString(drain.geometry.coordinates, { name: drain.name });
-    const snapped = turf.nearestPointOnLine(feature, inputPoint, { units: "kilometers" });
-    if (snapped.properties.dist < bestDistance) { bestDistance = snapped.properties.dist; bestDrain = feature; bestSnap = snapped; }
+    const snapped = turf.nearestPointOnLine(drain.feature, inputPoint, { units: "kilometers" });
+    if (snapped.properties.dist < bestDistance) {
+      bestDistance = snapped.properties.dist; bestDrain = drain; bestSnap = snapped;
+    }
   });
-  if (!bestDrain) return;
+  if (!bestDrain) { alert("لم يتم العثور على مصرف مناسب"); return; }
   App.selected = { drain: bestDrain, snap: bestSnap, input: inputPoint };
-  drawSelection(); calculateChainage();
+  drawSelection();
+  calculateChainage();
 }
 
-function clearGraphics() { ["selectedLayer","inputMarker","snapMarker","perpLine","beforeLayer","afterLayer","gpsMarker"].forEach(k => { if (App[k]) map.removeLayer(App[k]); }); }
+function clearGraphics() {
+  ["selectedLayer","inputMarker","snapMarker","perpLine","beforeLayer","afterLayer"].forEach(function (key) {
+    if (App[key]) { map.removeLayer(App[key]); App[key] = null; }
+  });
+  if (App.gpsMarker) { map.removeLayer(App.gpsMarker); App.gpsMarker = null; }
+  if (App.gpsAccuracy) { map.removeLayer(App.gpsAccuracy); App.gpsAccuracy = null; }
+}
+
 function drawSelection() {
   const drain = App.selected.drain, snap = App.selected.snap, input = App.selected.input;
-  App.selectedLayer = L.geoJSON(drain, { style: { color: "#ff9800", weight: 5 } }).addTo(map);
-  App.inputMarker = L.circleMarker([input.geometry.coordinates[1], input.geometry.coordinates[0]], { radius: 7, color: "#facc15", fillColor: "#facc15", fillOpacity: 1 }).addTo(map);
-  App.snapMarker = L.circleMarker([snap.geometry.coordinates[1], snap.geometry.coordinates[0]], { radius: 6, color: "#22c55e", fillColor: "#22c55e", fillOpacity: 1 }).addTo(map);
-  App.perpLine = L.polyline([[input.geometry.coordinates[1], input.geometry.coordinates[0]], [snap.geometry.coordinates[1], snap.geometry.coordinates[0]]], { color: "#facc15", weight: 2, dashArray: "8,8" }).addTo(map);
-  txtName.innerHTML = drain.properties.name; txtNearest.innerHTML = (snap.properties.dist * 1000).toFixed(2) + " متر";
+  App.selectedLayer = L.geoJSON(drain.feature, { style: { color: "#ff9800", weight: 5 } }).addTo(map);
+  App.inputMarker = L.circleMarker(
+    [input.geometry.coordinates[1], input.geometry.coordinates[0]],
+    { radius: 7, color: "#facc15", fillColor: "#facc15", fillOpacity: 1 }
+  ).addTo(map).bindPopup("نقطة الإدخال");
+  App.snapMarker = L.circleMarker(
+    [snap.geometry.coordinates[1], snap.geometry.coordinates[0]],
+    { radius: 6, color: "#22c55e", fillColor: "#22c55e", fillOpacity: 1 }
+  ).addTo(map).bindPopup("نقطة الإسقاط");
+  App.perpLine = L.polyline([
+    [input.geometry.coordinates[1], input.geometry.coordinates[0]],
+    [snap.geometry.coordinates[1], snap.geometry.coordinates[0]]
+  ], { color: "#facc15", weight: 2, dashArray: "8,8" }).addTo(map);
+  txtName.innerHTML = drain.name;
+  txtNearest.innerHTML = (snap.properties.dist * 1000).toFixed(2) + " متر";
 }
 
 function calculateChainage() {
-  const drain = App.selected.drain, snap = App.selected.snap; const coords = drain.geometry.coordinates;
-  const total = turf.length(drain, { units: "kilometers" });
+  const drain = App.selected.drain, snap = App.selected.snap;
+  const coords = drain.feature.geometry.coordinates;
+  const total = turf.length(drain.feature, { units: "kilometers" });
   let fromStart = snap.properties.location;
   if (fromStart === undefined || fromStart === null) {
-    let si = snap.properties.index || 0; fromStart = 0;
-    for (let i = 0; i < si; i++) fromStart += turf.distance(turf.point(coords[i]), turf.point(coords[i+1]), { units: "kilometers" });
+    let si = snap.properties.index !== undefined ? snap.properties.index : 0;
+    if (si < 0) si = 0;
+    if (si >= coords.length - 1) si = coords.length - 2;
+    fromStart = 0;
+    for (let i = 0; i < si; i++)
+      fromStart += turf.distance(turf.point(coords[i]), turf.point(coords[i+1]), { units: "kilometers" });
     fromStart += turf.distance(turf.point(coords[si]), turf.point(snap.geometry.coordinates), { units: "kilometers" });
   }
   const toEnd = total - fromStart;
-  txtFrom.innerHTML = fromStart.toFixed(3) + " كم"; txtTo.innerHTML = toEnd.toFixed(3) + " كم"; txtTotal.innerHTML = total.toFixed(3) + " كم";
-  txtSide.innerHTML = calculateSide(drain, total, fromStart, snap, App.selected.input);
+  txtFrom.innerHTML = fromStart.toFixed(3) + " كم";
+  txtTo.innerHTML = toEnd.toFixed(3) + " كم";
+  txtTotal.innerHTML = total.toFixed(3) + " كم";
+  txtSide.innerHTML = calculateSide(drain.feature, total, fromStart, snap, App.selected.input);
   drawDrainParts(coords, snap.geometry.coordinates, fromStart);
 }
 
 function calculateSide(line, total, fromStart, snap, inputPoint) {
-  const delta = 0.02; let d1 = Math.max(fromStart - delta, 0); let d2 = Math.min(fromStart + delta, total);
-  const ptBefore = turf.along(line, d1, { units: "kilometers" }); const ptAfter = turf.along(line, d2, { units: "kilometers" });
-  const dirBearing = turf.bearing(ptBefore, ptAfter); const toBearing = turf.bearing(turf.point(snap.geometry.coordinates), inputPoint);
-  let diff = toBearing - dirBearing; diff = ((diff + 180) % 360 + 360) % 360 - 180;
+  const delta = 0.02;
+  let d1 = Math.max(fromStart - delta, 0);
+  let d2 = Math.min(fromStart + delta, total);
+  if (d2 - d1 < 0.005) { d1 = 0; d2 = total; }
+  const ptBefore = turf.along(line, d1, { units: "kilometers" });
+  const ptAfter  = turf.along(line, d2, { units: "kilometers" });
+  const dirBearing = turf.bearing(ptBefore, ptAfter);
+  const toBearing  = turf.bearing(turf.point(snap.geometry.coordinates), inputPoint);
+  let diff = toBearing - dirBearing;
+  diff = ((diff + 180) % 360 + 360) % 360 - 180;
+  if (Math.abs(diff) < 1) return "النقطة على الخط تقريباً";
   return diff > 0 ? "الضفة اليمنى (أيمن)" : "الضفة اليسرى (أيسر)";
 }
 
 function drawDrainParts(coords, snapCoord, fromStartKm) {
-  let before = [[coords[0][1], coords[0][0]]]; let accumulated = 0; let inserted = false;
+  let before = [[coords[0][1], coords[0][0]]];
+  let accumulated = 0, inserted = false;
   for (let i = 0; i < coords.length - 1; i++) {
     const segLen = turf.distance(turf.point(coords[i]), turf.point(coords[i+1]), { units: "kilometers" });
-    if (!inserted && accumulated + segLen >= fromStartKm) { before.push([snapCoord[1], snapCoord[0]]); inserted = true; }
-    else { before.push([coords[i+1][1], coords[i+1][0]]); }
+    if (!inserted && accumulated + segLen >= fromStartKm) {
+      before.push([snapCoord[1], snapCoord[0]]); inserted = true;
+    } else { before.push([coords[i+1][1], coords[i+1][0]]); }
     accumulated += segLen;
   }
-  let after = [[snapCoord[1], snapCoord[0]]]; accumulated = 0; let started = false;
+  if (!inserted) before.push([snapCoord[1], snapCoord[0]]);
+
+  let after = [[snapCoord[1], snapCoord[0]]];
+  accumulated = 0; let started = false;
   for (let i = 0; i < coords.length - 1; i++) {
     const segLen = turf.distance(turf.point(coords[i]), turf.point(coords[i+1]), { units: "kilometers" });
     if (!started && accumulated + segLen >= fromStartKm) { started = true; after.push([coords[i+1][1], coords[i+1][0]]); }
     else if (started) after.push([coords[i+1][1], coords[i+1][0]]);
     accumulated += segLen;
   }
+
   App.beforeLayer = L.polyline(before, { color: "#22c55e", weight: 6 }).addTo(map);
-  App.afterLayer = L.polyline(after, { color: "#ef4444", weight: 6 }).addTo(map);
-  map.panTo([snapCoord[1], snapCoord[0]]);
+  App.afterLayer  = L.polyline(after,  { color: "#ef4444", weight: 6 }).addTo(map);
+  map.panTo([App.selected.snap.geometry.coordinates[1], App.selected.snap.geometry.coordinates[0]]);
 }
-function resetResult() { txtName.innerHTML = txtNearest.innerHTML = txtFrom.innerHTML = txtTo.innerHTML = txtTotal.innerHTML = txtSide.innerHTML = "---"; }
+
+function resetResult() {
+  txtName.innerHTML = txtNearest.innerHTML = txtFrom.innerHTML =
+  txtTo.innerHTML = txtTotal.innerHTML = txtSide.innerHTML = "---";
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js')
+      .then(function () { console.log('Service Worker مسجل بنجاح'); })
+      .catch(function (err) { console.log('فشل تسجيل Service Worker:', err); });
+  });
+}
 </script>
 </body>
 </html>
